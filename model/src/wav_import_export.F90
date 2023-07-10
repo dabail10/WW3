@@ -140,7 +140,7 @@ contains
     end if
     if (cesmcoupled) then
       call fldlist_add(fldsFrWav_num, fldsFrWav, 'Sw_lamult' )
-      call fldlist_add(fldsFrWav_num, fldsFrWav, 'Sw_lasl' )
+      !call fldlist_add(fldsFrWav_num, fldsFrWav, 'Sw_lasl' )
       call fldlist_add(fldsFrWav_num, fldsFrWav, 'Sw_ustokes')
       call fldlist_add(fldsFrWav_num, fldsFrWav, 'Sw_vstokes')
     else
@@ -619,7 +619,7 @@ contains
     real(r8), pointer :: syyn(:)
 
     real(r8), pointer :: sw_lamult(:)
-    real(r8), pointer :: sw_lasl(:)
+    !real(r8), pointer :: sw_lasl(:)
     real(r8), pointer :: sw_ustokes(:)
     real(r8), pointer :: sw_vstokes(:)
 
@@ -677,25 +677,25 @@ contains
         endif
       enddo
     end if
-    if (state_fldchk(exportState, 'Sw_lasl')) then
-      call state_getfldptr(exportState, 'Sw_lasl', sw_lasl, rc=rc)
-      if (ChkErr(rc,__LINE__,u_FILE_u)) return
-      sw_lasl(:) = fillvalue
-      do jsea=1, nseal
-         isea = iaproc + (jsea-1)*naproc
-         ix  = mapsf(isea,1)
-         iy  = mapsf(isea,2)
-         if (mapsta(iy,ix) == 1) then
-            ! note: an arbitrary minimum value of 0.2 is set to avoid zero
-            !       Langmuir number which may result from zero surface friction
-            !       velocity but may cause unphysically strong Langmuir mixing
-            sw_lasl(jsea) = max(0.2, sqrt(UST(isea)*ASF(isea)*sqrt(dair/dwat) &
-                          / max(1.e-14, sqrt(USSHX(jsea)**2+USSHY(jsea)**2))))
-         else
-            sw_lasl(jsea)  = 1.e6
-         endif
-      enddo
-    end if
+    !if (state_fldchk(exportState, 'Sw_lasl')) then
+    !  call state_getfldptr(exportState, 'Sw_lasl', sw_lasl, rc=rc)
+    !  if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    !  sw_lasl(:) = fillvalue
+    !  do jsea=1, nseal
+    !     isea = iaproc + (jsea-1)*naproc
+    !     ix  = mapsf(isea,1)
+    !     iy  = mapsf(isea,2)
+    !     if (mapsta(iy,ix) == 1) then
+    !        ! note: an arbitrary minimum value of 0.2 is set to avoid zero
+    !        !       Langmuir number which may result from zero surface friction
+    !        !       velocity but may cause unphysically strong Langmuir mixing
+    !        sw_lasl(jsea) = max(0.2, sqrt(UST(isea)*ASF(isea)*sqrt(dair/dwat) &
+    !                      / max(1.e-14, sqrt(USSHX(jsea)**2+USSHY(jsea)**2))))
+    !     else
+    !        sw_lasl(jsea)  = 1.e6
+    !     endif
+    !  enddo
+    !end if
 #endif
     ! surface stokes drift
     if (state_fldchk(exportState, 'Sw_ustokes')) then
