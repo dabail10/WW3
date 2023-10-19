@@ -1008,10 +1008,10 @@ CONTAINS
     !                                                 Module W3GDATMD
     IF ( WRITE ) THEN
       WRITE (NDSM)                                                &
-           E3DF, P2MSF, US3DF,USSPF, USSP_WN
+           E3DF, P2MSF, US3DF,USSPF, USSP_TAIL, USSP_WN
     ELSE
       READ (NDSM,END=801,ERR=802,IOSTAT=IERR)                     &
-           E3DF, P2MSF, US3DF,USSPF, USSP_WN
+           E3DF, P2MSF, US3DF,USSPF, USSP_TAIL, USSP_WN
     END IF
 
     IF ( INXOUT .EQ. 'GRID' ) THEN
