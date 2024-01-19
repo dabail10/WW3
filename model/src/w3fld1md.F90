@@ -1115,9 +1115,11 @@ CONTAINS
     !----------------------------------------------
     DO K=KA1, KA2-1
       AVG=SUM(INSPC(K,:))/MAX(REAL(NTH),1.)
-      DO T=1,NTH
-        INSPC(K,T)=BT(K)*INSPC(K,T)/TPI/(WN2(K)**3.0)/AVG
-      ENDDO
+      if (AVG .GT. 0.) THEN
+         DO T=1,NTH
+           INSPC(K,T)=BT(K)*INSPC(K,T)/TPI/(WN2(K)**3.0)/AVG
+         ENDDO
+      ENDIF
     ENDDO
     !-----------------------------------------------------------
     ! Region B, Saturation level left flat while spectrum turned

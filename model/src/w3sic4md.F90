@@ -573,7 +573,7 @@ CONTAINS
       DO IK=1, NK
         x1=TPI/SIG(IK)   ! period
         x1sqr=x1*x1
-        KARG1(ik)=-0.26982 + 1.5043*x3 - 0.70112*x3sqr + 0.011037*x2 +  &
+        KARG1(IK)=-0.26982 + 1.5043*x3 - 0.70112*x3sqr + 0.011037*x2 +  &
              (-0.0073178)*x2*x3 + 0.00036604*x2*x3sqr + &
              (-0.00045789)*x2sqr + 1.8034e-05*x2sqr*x3 + &
              (-0.7246)*x1 + 0.12068*x1*x3 + &
@@ -582,14 +582,18 @@ CONTAINS
              0.0035412*x1sqr - 0.0031893*x1sqr*x3 + &
              (-0.00010791)*x1sqr*x2 + &
              0.00031073*x1**3 + 1.5996e-06*x2**3 + 0.090994*x3**3
-        KARG1(ik)=min(karg1(ik),0.0)
-        WN_I(ik)  = 10.0**KARG1(ik)
+        KARG1(IK)=min(karg1(IK),0.0)
+        ALPHA(IK) = 10.0**KARG1(IK)
+        !WN_I(ik)  = 10.0**KARG1(IK)
         perfour=x1sqr*x1sqr
         if ((x1.gt.5.0) .and. (x1.lt.20.0)) then
-          WN_I(IK) = WN_I(IK) + amhb/x1sqr+bmhb/perfour
+          !WN_I(IK) = WN_I(IK) + amhb/x1sqr+bmhb/perfour
+          ALPHA(IK) = ALPHA(IK) + amhb/x1sqr+bmhb/perfour
         else if (x1.gt.20.0) then
-          WN_I(IK) = amhb/x1sqr+bmhb/perfour
+          !WN_I(IK) = amhb/x1sqr+bmhb/perfour
+          ALPHA(IK) = amhb/x1sqr+bmhb/perfour
         endif
+        WN_I(IK) = ALPHA(IK) * 0.5
       end do
     CASE DEFAULT
       WN_I = ICECOEF1 !Default to IC1: Uniform in k
