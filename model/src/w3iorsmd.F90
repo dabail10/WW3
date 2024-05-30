@@ -1079,6 +1079,8 @@ CONTAINS
         RPOS = 1_8 + LRECL*(NREC-1_8)
         READ (NDSR,POS=RPOS,ERR=802,IOSTAT=IERR)                &
              TLEV, TICE, TRHO
+        TIC1(:)=TICE(:)
+        TIC5(:)=TICE(:)
         DO IPART=1,NPART
           NREC  = NREC + 1
           RPOS = 1_8 + LRECL*(NREC-1_8)
