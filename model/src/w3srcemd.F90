@@ -1358,6 +1358,11 @@ CONTAINS
       CALL UOST_SRCTRMCOMPUTE(IX, IY, SPEC, CG1, DT,            &
            U10ABS, U10DIR, VSUO, VDUO)
 #endif
+#ifdef W3_IC4
+!        write(NDSE,*) 'w3srcemd', ICE   ! CMB this goes to both cesm.log and wav.log
+        if (ICE.GT.0) CALL W3SIC4 ( SPEC,DEPTH, CG1, &      !CMB
+                                    IX, IY, VSIC, VDIC )    !CMB
+#endif
       !
       ! 2.g Dump training data if necessary
       !
@@ -1420,8 +1425,8 @@ CONTAINS
         VSDS(1:NSPECH) = ICESCALEDS * VSDS(1:NSPECH)
         VDDS(1:NSPECH) = ICESCALEDS * VDDS(1:NSPECH)
 #ifdef W3_IC4
-        VSIC(1:NSPECH) = ICE        * VSIC(1:NSPECH)    ! (see Rogers et al 2016)
-        VDIC(1:NSPECH) = ICE        * VDIC(1:NSPECH)    ! ************** 
+        VSIC(1:NSPECH) = ICE        * VSIC(1:NSPECH)    ! (see Rogers et al 2016) CMB
+        VDIC(1:NSPECH) = ICE        * VDIC(1:NSPECH)    ! **************          CMB
 #endif
       END IF
 
@@ -1481,10 +1486,10 @@ CONTAINS
         VD(IS) = VD(IS) + VDUO(IS)
 #endif
 #ifdef W3_IC4
-        IF ( ICE.GT.0. ) THEN
-          VS(IS) = VS(IS) + VSIC(IS)
-          VD(IS) = VD(IS) + VDIC(IS)
-        END IF
+        IF ( ICE.GT.0. ) THEN           ! CMB
+          VS(IS) = VS(IS) + VSIC(IS)    ! CMB
+          VD(IS) = VD(IS) + VDIC(IS)    ! CMB
+        END IF                          ! CMB
 #endif
         DAMAX  = MIN ( DAM(IS) , MAX ( XREL*SPECINIT(IS) , AFILT ) )
         AFAC   = 1. / MAX( 1.E-10 , ABS(VS(IS)/DAMAX) )
@@ -1507,7 +1512,7 @@ CONTAINS
       DT     = MAX ( 0.5, DT ) ! The hardcoded min. dt is a problem for certain cases e.g. laborotary scale problems.
       !
 #ifdef W3_IC4
-      if (ICE.gt.0.01 .and. ICE.lt.0.95) DT=DTMIN ! always use a small timestep in ice
+      if (ICE.gt.0.01 .and. ICE.lt.0.95) DT=DTMIN ! always use a small timestep in ice CMB
 #endif
       DTDYN  = DTDYN + DT
 #ifdef W3_T
@@ -1799,7 +1804,7 @@ CONTAINS
           PHINL = PHINL + VSNL(IS)* DT * FACTOR                      &
                / MAX ( 1. , (1.-HDT*VDNL(IS))) ! semi-implict integration scheme
 #ifdef W3_IC4
-          IF ( ICE.GT.0 ) THEN
+          IF ( ICE.GT.0 ) THEN ! CMB
              PHICE = PHICE + VSIC(IS) * DT * FACTOR                  &
                / MAX ( 1. , (1.-HDT*VDIC(IS))) ! semi-implicit integration
              TAUICE(:) = TAUICE(:) - FACTOR2*COSI(:)*VSIC(IS) * DT   &
@@ -2070,9 +2075,9 @@ CONTAINS
     TAUOX=(GRAV*MWXFINISH+TAUWIX-TAUBBL(1))/DTG
     TAUOY=(GRAV*MWYFINISH+TAUWIY-TAUBBL(2))/DTG
 #ifdef W3_IC4
-    TAUICE(:)=TAUICE(:)/DTG
-    TAUOX = TAUOX - TAUICE(1)
-    TAUOY = TAUOY - TAUICE(2)
+    TAUICE(:)=TAUICE(:)/DTG   !CMB
+    TAUOX = TAUOX - TAUICE(1) !CMB
+    TAUOY = TAUOY - TAUICE(2) !CMB
 #endif
     TAUWIX=TAUWIX/DTG
     TAUWIY=TAUWIY/DTG
@@ -2089,7 +2094,7 @@ CONTAINS
     PHINL =DWAT*GRAV*PHINL /DTG
     PHIBBL=DWAT*GRAV*PHIBBL/DTG
 #ifdef W3_IC4
-    PHICE =-1.*DWAT*GRAV*PHICE/DTG
+    PHICE =-1.*DWAT*GRAV*PHICE/DTG !CMB
 #endif
     !
     ! 10.1  Adds ice scattering and dissipation: implicit integration---------------- *
@@ -2102,7 +2107,7 @@ CONTAINS
     END IF
 #endif
 #ifndef W3_IC4
-    IF ( INFLAGS2(4).AND.ICE.GT.0 ) THEN
+    IF ( INFLAGS2(4).AND.ICE.GT.0 ) THEN !CMB
 
       IF (IICEDISP) THEN
         ICECOEF2 = 1E-6
@@ -2145,6 +2150,9 @@ CONTAINS
 #ifdef W3_IC3
       CALL W3SIC3 ( SPEC,DEPTH, CG1,  WN1, IX, IY, VSIC, VDIC )
 #endif
+!CMB #ifdef W3_IC4
+!CMB      CALL W3SIC4 ( SPEC,DEPTH, CG1,       IX, IY, VSIC, VDIC )
+!CMB #endif
 #ifdef W3_IC5
       CALL W3SIC5 ( SPEC,DEPTH, CG1,  WN1, IX, IY, VSIC, VDIC )
 #endif
@@ -2173,6 +2181,9 @@ CONTAINS
 #ifdef W3_IC3
         ATT=EXP(ICE*VDIC(IS)*DTG)
 #endif
+!CMB #ifdef W3_IC4
+!CMB        ATT=EXP(ICE*VDIC(IS)*DTG)
+!CMB #endif
 #ifdef W3_IC5
         ATT=EXP(ICE*VDIC(IS)*DTG)
 #endif
