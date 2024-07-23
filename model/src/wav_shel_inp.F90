@@ -511,10 +511,7 @@ contains
       !--------------------
 
       npts   = 0
-      notype = 6
-      if (w3_cou_flag) then
-        notype = 7
-      end if
+      notype = 7
       do j = 1, notype
 
         ! outpts(i)%ofiles(j)=ofiles(j)
@@ -897,10 +894,7 @@ contains
 
       call print_logmsg(740+IAPROC, '2.4 Output dates ',  w3_debuginit_flag)
       npts   = 0
-      notype = 6
-      if (w3_cou_flag) then
-        notype = 7
-      end if
+      notype = 7
       do j = 1, notype
         write(msg1,*)'J=', J, '/ NOTYPE=', NOTYPE
         call nextln ( comstr , ndsi , ndsen )
