@@ -1358,10 +1358,9 @@ CONTAINS
       CALL UOST_SRCTRMCOMPUTE(IX, IY, SPEC, CG1, DT,            &
            U10ABS, U10DIR, VSUO, VDUO)
 #endif
-#ifdef W3_IC4
-!        write(NDSE,*) 'w3srcemd', ICE   ! CMB this goes to both cesm.log and wav.log
-        if (ICE.GT.0) CALL W3SIC4 ( SPEC,DEPTH, CG1, &      !CMB
-                                    IX, IY, VSIC, VDIC )    !CMB
+#ifdef W3_IC4_NUMERICS
+        if (ICE.GT.0) CALL W3SIC4 ( SPEC,DEPTH, CG1, &
+                                    IX, IY, VSIC, VDIC )
 #endif
       !
       ! 2.g Dump training data if necessary
@@ -1424,9 +1423,9 @@ CONTAINS
         VDIN(1:NSPECH) = ICESCALEIN * VDIN(1:NSPECH)
         VSDS(1:NSPECH) = ICESCALEDS * VSDS(1:NSPECH)
         VDDS(1:NSPECH) = ICESCALEDS * VDDS(1:NSPECH)
-#ifdef W3_IC4
-        VSIC(1:NSPECH) = ICE        * VSIC(1:NSPECH)    ! (see Rogers et al 2016) CMB
-        VDIC(1:NSPECH) = ICE        * VDIC(1:NSPECH)    ! **************          CMB
+#ifdef W3_IC4_NUMERICS
+        VSIC(1:NSPECH) = ICE        * VSIC(1:NSPECH)    ! (see Rogers et al 2016)
+        VDIC(1:NSPECH) = ICE        * VDIC(1:NSPECH)    ! **************
 #endif
       END IF
 
@@ -1485,11 +1484,11 @@ CONTAINS
 #ifdef W3_UOST
         VD(IS) = VD(IS) + VDUO(IS)
 #endif
-#ifdef W3_IC4
-        IF ( ICE.GT.0. ) THEN           ! CMB
-          VS(IS) = VS(IS) + VSIC(IS)    ! CMB
-          VD(IS) = VD(IS) + VDIC(IS)    ! CMB
-        END IF                          ! CMB
+#ifdef W3_IC4_NUMERICS
+        IF ( ICE.GT.0. ) THEN
+          VS(IS) = VS(IS) + VSIC(IS)
+          VD(IS) = VD(IS) + VDIC(IS)
+        END IF
 #endif
         DAMAX  = MIN ( DAM(IS) , MAX ( XREL*SPECINIT(IS) , AFILT ) )
         AFAC   = 1. / MAX( 1.E-10 , ABS(VS(IS)/DAMAX) )
@@ -1511,8 +1510,8 @@ CONTAINS
       !
       DT     = MAX ( 0.5, DT ) ! The hardcoded min. dt is a problem for certain cases e.g. laborotary scale problems.
       !
-#ifdef W3_IC4
-      if (ICE.gt.0.01 .and. ICE.lt.0.95) DT=DTMIN ! always use a small timestep in ice CMB
+#ifdef W3_IC4_NUMERICS
+      if (ICE.gt.0.01 .and. ICE.lt.0.95) DT=DTMIN
 #endif
       DTDYN  = DTDYN + DT
 #ifdef W3_T
@@ -1803,8 +1802,8 @@ CONTAINS
                / MAX ( 1. , (1.-HDT*VDBT(IS))) ! semi-implict integration scheme
           PHINL = PHINL + VSNL(IS)* DT * FACTOR                      &
                / MAX ( 1. , (1.-HDT*VDNL(IS))) ! semi-implict integration scheme
-#ifdef W3_IC4
-          IF ( ICE.GT.0 ) THEN ! CMB
+#ifdef W3_IC4_NUMERICS
+          IF ( ICE.GT.0 ) THEN
              PHICE = PHICE + VSIC(IS) * DT * FACTOR                  &
                / MAX ( 1. , (1.-HDT*VDIC(IS))) ! semi-implicit integration
              TAUICE(:) = TAUICE(:) - FACTOR2*COSI(:)*VSIC(IS) * DT   &
@@ -2074,10 +2073,10 @@ CONTAINS
     !
     TAUOX=(GRAV*MWXFINISH+TAUWIX-TAUBBL(1))/DTG
     TAUOY=(GRAV*MWYFINISH+TAUWIY-TAUBBL(2))/DTG
-#ifdef W3_IC4
-    TAUICE(:)=TAUICE(:)/DTG   !CMB
-    TAUOX = TAUOX - TAUICE(1) !CMB
-    TAUOY = TAUOY - TAUICE(2) !CMB
+#ifdef W3_IC4_NUMERICS
+    TAUICE(:)=TAUICE(:)/DTG
+    TAUOX = TAUOX - TAUICE(1)
+    TAUOY = TAUOY - TAUICE(2)
 #endif
     TAUWIX=TAUWIX/DTG
     TAUWIY=TAUWIY/DTG
@@ -2093,8 +2092,8 @@ CONTAINS
     PHIAW =DWAT*GRAV*PHIAW /DTG
     PHINL =DWAT*GRAV*PHINL /DTG
     PHIBBL=DWAT*GRAV*PHIBBL/DTG
-#ifdef W3_IC4
-    PHICE =-1.*DWAT*GRAV*PHICE/DTG !CMB
+#ifdef W3_IC4_NUMERICS
+    PHICE =-1.*DWAT*GRAV*PHICE/DTG
 #endif
     !
     ! 10.1  Adds ice scattering and dissipation: implicit integration---------------- *
@@ -2106,8 +2105,8 @@ CONTAINS
       WRITE(740+IAPROC,*) '3 : sum(SPEC)=', sum(SPEC)
     END IF
 #endif
-#ifndef W3_IC4
-    IF ( INFLAGS2(4).AND.ICE.GT.0 ) THEN !CMB
+#ifndef W3_IC4_NUMERICS
+    IF ( INFLAGS2(4).AND.ICE.GT.0 ) THEN
 
       IF (IICEDISP) THEN
         ICECOEF2 = 1E-6
@@ -2125,7 +2124,7 @@ CONTAINS
             WN_R(IK)=WN1(IK)*(1-SMOOTH_ICEDISP)+WN_R(IK)*(SMOOTH_ICEDISP)
           END DO
 #endif
-#ifndef W3_IC4
+#ifndef W3_IC4_NUMERICS
         END IF
       ELSE
         WN_R=WN1
@@ -2150,9 +2149,9 @@ CONTAINS
 #ifdef W3_IC3
       CALL W3SIC3 ( SPEC,DEPTH, CG1,  WN1, IX, IY, VSIC, VDIC )
 #endif
-!CMB #ifdef W3_IC4
-!CMB      CALL W3SIC4 ( SPEC,DEPTH, CG1,       IX, IY, VSIC, VDIC )
-!CMB #endif
+#ifndef W3_IC4_NUMERICS
+      CALL W3SIC4 ( SPEC,DEPTH, CG1,       IX, IY, VSIC, VDIC )
+#endif
 #ifdef W3_IC5
       CALL W3SIC5 ( SPEC,DEPTH, CG1,  WN1, IX, IY, VSIC, VDIC )
 #endif
@@ -2160,7 +2159,7 @@ CONTAINS
 #ifdef W3_IS1
       CALL W3SIS1 ( SPEC, ICE, VSIR )
 #endif
-#ifndef W3_IC4
+#ifndef W3_IC4_NUMERICS
       SPEC2 = SPEC
       !
       TAUICE(:) = 0.
@@ -2181,9 +2180,9 @@ CONTAINS
 #ifdef W3_IC3
         ATT=EXP(ICE*VDIC(IS)*DTG)
 #endif
-!CMB #ifdef W3_IC4
-!CMB        ATT=EXP(ICE*VDIC(IS)*DTG)
-!CMB #endif
+#ifndef W3_IC4_NUMERICS
+       ATT=EXP(ICE*VDIC(IS)*DTG)
+#endif
 #ifdef W3_IC5
         ATT=EXP(ICE*VDIC(IS)*DTG)
 #endif
@@ -2199,7 +2198,7 @@ CONTAINS
           ATT=ATT*EXP((ICE*VDIR(IS))*DTG)
         END IF
 #endif
-#ifndef W3_IC4
+#ifndef W3_IC4_NUMERICS
         SPEC(1+(IK-1)*NTH:NTH+(IK-1)*NTH) = ATT*SPEC2(1+(IK-1)*NTH:NTH+(IK-1)*NTH)
 #endif
         !
@@ -2228,7 +2227,7 @@ CONTAINS
           END IF
         END IF
 #endif
-#ifndef W3_IC4
+#ifndef W3_IC4_NUMERICS
         !
         ! 10.2  Fluxes of energy and momentum due to ice effects
         !
@@ -2251,7 +2250,7 @@ CONTAINS
         ICEF = 0.
       ENDIF
 #endif
-#ifndef W3_IC4
+#ifndef W3_IC4_NUMERICS
     END IF
 #endif
     !

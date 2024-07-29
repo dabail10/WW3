@@ -305,8 +305,7 @@ CONTAINS
     USE W3GDATMD, ONLY: NX, NY, NSEA, NSEAL, NSPEC, MAPSTA, MAPST2, &
          GNAME, FILEXT, GTYPE, UNGTYPE
     USE W3TRIAMD, ONLY: SET_UG_IOBP
-    USE W3WDATMD, only : DINIT, VA, TIME, TLEV, TICE, TRHO, ICE, UST
-    USE W3WDATMD, only : USTDIR, ASF, FPIS, ICEF, TIC1, TIC5, WLV
+    USE W3WDATMD
 #ifdef W3_WRST
     USE W3IDATMD, ONLY: WXN, WYN, W3SETI
     USE W3IDATMD, ONLY: WXNwrst, WYNwrst
@@ -893,7 +892,7 @@ CONTAINS
           WRITEBUFF(:) = 0.
           WRITE (NDSR,POS=RPOS,ERR=803,IOSTAT=IERR) WRITEBUFF
           WRITE (NDSR,POS=RPOS,ERR=803,IOSTAT=IERR)           &
-               TLEV, TICE, TRHO
+               TLEV, TICE, TRHO, TIC1, TIC5
           DO IPART=1,NPART
             NREC  = NREC + 1
             RPOS  = 1_8 + LRECL*(NREC-1_8)
@@ -1078,9 +1077,7 @@ CONTAINS
       IF (TYPE.EQ.'FULL') THEN
         RPOS = 1_8 + LRECL*(NREC-1_8)
         READ (NDSR,POS=RPOS,ERR=802,IOSTAT=IERR)                &
-             TLEV, TICE, TRHO
-        TIC1(:)=TICE(:)
-        TIC5(:)=TICE(:)
+             TLEV, TICE, TRHO, TIC1, TIC5
         DO IPART=1,NPART
           NREC  = NREC + 1
           RPOS = 1_8 + LRECL*(NREC-1_8)
