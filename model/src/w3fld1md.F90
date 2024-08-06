@@ -1119,7 +1119,7 @@ CONTAINS
         if (avg /= 0) then
           INSPC(K,T)=BT(K)*INSPC(K,T)/TPI/(WN2(K)**3.0)/AVG
         else
-          inspc((k,t) = 0.0
+          inspc(k,t) = 0.0
         end if
       ENDDO
     ENDDO
