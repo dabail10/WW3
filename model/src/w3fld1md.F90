@@ -1116,7 +1116,11 @@ CONTAINS
     DO K=KA1, KA2-1
       AVG=SUM(INSPC(K,:))/MAX(REAL(NTH),1.)
       DO T=1,NTH
-        INSPC(K,T)=BT(K)*INSPC(K,T)/TPI/(WN2(K)**3.0)/AVG
+        if (avg /= 0) then
+          INSPC(K,T)=BT(K)*INSPC(K,T)/TPI/(WN2(K)**3.0)/AVG
+        else
+          inspc((k,t) = 0.0
+        end if
       ENDDO
     ENDDO
     !-----------------------------------------------------------
