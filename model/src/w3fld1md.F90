@@ -1138,7 +1138,11 @@ CONTAINS
       ENDDO
       AVG=SUM(NORMSPC)/MAX(REAL(NTH),1.)
       DO T=1, NTH
-        INSPC(K,T) = SAT * NORMSPC(T)/TPI/(WN2(K)**3.0)/AVG
+        if (avg /= 0) then
+          INSPC(K,T) = SAT * NORMSPC(T)/TPI/(WN2(K)**3.0)/AVG
+        else
+          inspc(k,t) = 0.0
+        end if
       ENDDO
     ENDDO
     DO T=1, NTH
@@ -1152,7 +1156,11 @@ CONTAINS
     AVG=SUM(NORMSPC)/MAX(REAL(NTH),1.)!1./4.
     DO K=KA3+1, NKT
       DO T=1, NTH
-        INSPC(K,T)=NORMSPC(T)*(SAT)/TPI/(WN2(K)**3.0)/AVG
+        if (avg /= 0) then
+          INSPC(K,T)=NORMSPC(T)*(SAT)/TPI/(WN2(K)**3.0)/AVG
+        else
+          inspc(k,t) = 0.0
+        end if
       ENDDO
     ENDDO
     DEALLOCATE(ANGLE1)
