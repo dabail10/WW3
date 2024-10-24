@@ -75,8 +75,8 @@ module wav_shr_mod
   logical            , public :: merge_import  = .false.  !< @public logical to specify whether import fields will
                                                           !! be merged with a field provided from a file
   logical            , public :: multigrid = .false.      !< @public logical to control whether wave model is run
-                                                          !! as multigrid  
-  integer            , public :: dtime_drv                !! used for nstep(s) alarm option setting 
+                                                          !! as multigrid
+  integer            , public :: dtime_drv                !! used for nstep(s) alarm option setting
   interface ymd2date
     module procedure ymd2date_int
     module procedure ymd2date_long
@@ -948,9 +948,9 @@ contains
        if (chkerr(rc,__LINE__,u_FILE_u)) return
        call ESMF_ClockGetAlarm(clock, alarmname="alarm_stop", alarm=alarm, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
-       call ESMF_AlarmGet(alarm, ringTime=NextAlarm, rc=rc) 
+       call ESMF_AlarmGet(alarm, ringTime=NextAlarm, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
-      
+
     case (optDate)
       if (.not. present(opt_ymd)) then
         call ESMF_LogWrite(trim(subname)//trim(option)//' requires opt_ymd', &
@@ -1041,10 +1041,6 @@ contains
          return
       endif
       update_nextalarm  = .true.
-!      call ESMF_ClockGet(clock, TimeStep=AlarmInterval, rc=rc)
-!      if (chkerr(rc,__LINE__,u_FILE_u)) return
-!      AlarmInterval = AlarmInterval * opt_n
-!      update_nextalarm  = .true.
 
     case (optNSeconds)
       if (.not.present(opt_n)) then
@@ -1399,7 +1395,7 @@ contains
 
     do i=1,ncomps
        comp = compname(i)//"_cpl_dt"
-    
+
        call NUOPC_CompAttributeGet(gcomp, name=comp, isPresent=is_present, isSet=is_set, rc=rc)
        if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
