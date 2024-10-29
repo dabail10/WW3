@@ -48,7 +48,6 @@ module wav_shr_mod
   private :: field_getfldptr   !< @private obtain a pointer to a field
   public  :: diagnose_mesh     !< @public write out info about mesh
   public  :: write_meshdecomp  !< @public write the mesh decomposition to a file
-  public  :: get_minimum_timestep !< @public used to set nstep based alarms
   interface state_getfldptr
     module procedure state_getfldptr_1d
     module procedure state_getfldptr_2d
@@ -1013,10 +1012,6 @@ contains
          return
       endif
       update_nextalarm  = .true.
-!      call ESMF_ClockGet(clock, TimeStep=AlarmInterval, rc=rc)
-!      if (chkerr(rc,__LINE__,u_FILE_u)) return
-!      AlarmInterval = AlarmInterval * opt_n
-!      update_nextalarm  = .true.
 
     case (optNStep)
       if (.not.present(opt_n)) then
@@ -1373,51 +1368,6 @@ contains
     date = abs(year)*10000_I8 + month*100 + day  ! coded calendar date
     if (year < 0) date = -date
   end subroutine ymd2date_long
-
-  integer function get_minimum_timestep(gcomp, rc)
-    ! Get the minimum timestep interval in seconds based on the nuopc.config variables *_cpl_dt,
-    ! if none of these variables are defined this routine will throw an error
-    type(ESMF_GridComp), intent(in) :: gcomp
-    integer, intent(out)            :: rc
-
-    character(len=CS) :: cvalue
-    integer                 :: comp_dt             ! coupling interval of component
-    integer, parameter :: ncomps = 8
-    character(len=3),parameter :: compname(ncomps) = (/"atm", "lnd", "ice", "ocn","glc","rof", "wav", "esp"/)
-    character(len=10)        :: comp
-    integer :: i
-    logical                 :: is_present, is_set  ! determine if these variables are used
-
-    !---------------------------------------------------------------------------
-    ! Determine driver clock timestep
-    !---------------------------------------------------------------------------
-    get_minimum_timestep = huge(1)
-
-    do i=1,ncomps
-       comp = compname(i)//"_cpl_dt"
-
-       call NUOPC_CompAttributeGet(gcomp, name=comp, isPresent=is_present, isSet=is_set, rc=rc)
-       if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-       if (is_present .and. is_set) then
-          call NUOPC_CompAttributeGet(gcomp, name=comp, value=cvalue, rc=rc)
-          if (ChkErr(rc,__LINE__,u_FILE_u)) return
-          read(cvalue,*) comp_dt
-          get_minimum_timestep = min(comp_dt, get_minimum_timestep)
-       endif
-    enddo
-
-    if(get_minimum_timestep == huge(1)) then
-       call ESMF_LogWrite('minimum_timestep_error: this option is not supported ', ESMF_LOGMSG_ERROR)
-       rc = ESMF_FAILURE
-       return
-    endif
-    if(get_minimum_timestep <= 0) then
-       call ESMF_LogWrite('minimum_timestep_error ERROR ', ESMF_LOGMSG_ERROR)
-       rc = ESMF_FAILURE
-       return
-    endif
-  end function get_minimum_timestep
 
   !===============================================================================
   !> Return a logical true if ESMF_LogFoundError detects an error

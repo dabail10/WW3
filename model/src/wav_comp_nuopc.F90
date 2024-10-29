@@ -531,6 +531,7 @@ contains
     !--------------------------------------------------------------------
     ! IO set-up
     !--------------------------------------------------------------------
+    if (.not. multigrid) call set_shel_io(stdout,mds,ntrace)
 
     if (cesmcoupled) then
       shrlogunit = 6
@@ -546,8 +547,6 @@ contains
     else
       stdout = 6
     end if
-
-    if (.not. multigrid) call set_shel_io(stdout,mds,ntrace)
 
     if ( root_task ) then
       write(stdout,'(a)')'      *** WAVEWATCH III Program shell ***      '
@@ -1012,7 +1011,6 @@ contains
     integer                 :: imod
     integer                 :: ymd        ! current year-month-day
     integer                 :: tod        ! current time of day (sec)
-    integer                 :: shrlogunit ! original log unit and level
     character(ESMF_MAXSTR)  :: msgString
     character(len=*),parameter :: subname = '(wav_comp_nuopc:ModelAdvance) '
     !-------------------------------------------------------
@@ -1160,7 +1158,7 @@ contains
   !> @author mvertens@ucar.edu, Denise.Worthen@noaa.gov
   !> @date 01-05-2022
   subroutine ModelSetRunClock(gcomp, rc)
-    use wav_shr_mod, only : dtime_drv, get_minimum_timestep
+    use nuopc_shr_methods, only : dtime_drv, get_minimum_timestep
     ! input/output variables
     type(ESMF_GridComp)  :: gcomp
     integer, intent(out) :: rc
@@ -1410,7 +1408,6 @@ contains
     ! local variables
     integer           :: ierr
     integer           :: unitn  ! namelist unit number
-    integer           :: shrlogunit
     logical           :: isPresent, isSet
     real(r8)          :: dtmax_in  ! Maximum overall time step.
     real(r8)          :: dtmin_in  ! Minimum dynamic time step for source
