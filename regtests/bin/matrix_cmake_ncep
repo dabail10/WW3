@@ -74,7 +74,7 @@ EOF
     batchq='slurm'
     basemodcomp='intel/2022.1.2'
     basemodmpi='impi/2022.1.2'
-    hpcstackpath='/work/noaa/epic-ps/hpc-stack/libs/intel/2022.1.2/modulefiles/stack'
+    hpcstackpath='/work/noaa/epic-ps/role-epic-ps/hpc-stack/libs/intel-2022.1.2/modulefiles/stack'
     hpcstackversion='hpc/1.2.0'
     modcomp='hpc-intel/2022.1.2'
     modmpi='hpc-impi/2022.1.2'
@@ -203,6 +203,7 @@ EOF
   export      shwtr='y' # shallow water tests
   export      unstr='y' # unstructured grid tests
   export      pdlib='y' # unstr with pdlib for domain decomposition and implicit solver
+  export        lmp='y' # Langmuir mixing parameterization
   export      smcgr='y' # SMC grid test
   export        rtd='y' # Rotated pole test
   export     mudice='y' # Mud/Ice and wave interaction tests
