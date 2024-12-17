@@ -561,7 +561,6 @@ contains
     else
       stdout = 6
     end if
-
     if (.not. multigrid) call set_shel_io(stdout,mds,ntrace)
 
     if ( root_task ) then
@@ -1026,7 +1025,8 @@ contains
     type(ESMF_Time)         :: currTime, nextTime, startTime, stopTime
     integer                 :: yy,mm,dd,hh,ss
     integer                 :: imod
-    integer                 :: shrlogunit ! original log unit and level
+    integer                 :: ymd        ! current year-month-day
+    integer                 :: tod        ! current time of day (sec)
     character(ESMF_MAXSTR)  :: msgString
     character(len=*),parameter :: subname = '(wav_comp_nuopc:ModelAdvance) '
     !-------------------------------------------------------
@@ -1178,7 +1178,7 @@ contains
   !> @author mvertens@ucar.edu, Denise.Worthen@noaa.gov
   !> @date 01-05-2022
   subroutine ModelSetRunClock(gcomp, rc)
-
+    use nuopc_shr_methods, only : dtime_drv, get_minimum_timestep
     ! input/output variables
     type(ESMF_GridComp)  :: gcomp
     integer, intent(out) :: rc
@@ -1237,6 +1237,8 @@ contains
 
     call ESMF_ClockGetAlarmList(mclock, alarmlistflag=ESMF_ALARMLIST_ALL, alarmCount=alarmCount, rc=rc)
     if (ChkErr(rc,__LINE__,u_FILE_u)) return
+    dtime_drv = get_minimum_timestep(gcomp, rc)
+    if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     if (alarmCount == 0) then
 
@@ -1246,6 +1248,29 @@ contains
       call ESMF_GridCompGet(gcomp, name=name, rc=rc)
       if (ChkErr(rc,__LINE__,u_FILE_u)) return
       call ESMF_LogWrite(trim(subname)//'setting alarms for ' // trim(name), ESMF_LOGMSG_INFO)
+      !----------------
+      ! Stop alarm
+      !----------------
+      call NUOPC_CompAttributeGet(gcomp, name="stop_option", value=stop_option, rc=rc)
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+      call NUOPC_CompAttributeGet(gcomp, name="stop_n", value=cvalue, rc=rc)
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
+      read(cvalue,*) stop_n
+
+      call NUOPC_CompAttributeGet(gcomp, name="stop_ymd", value=cvalue, rc=rc)
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
+      read(cvalue,*) stop_ymd
+
+      call alarmInit(mclock, stop_alarm, stop_option, &
+           opt_n   = stop_n,           &
+           opt_ymd = stop_ymd,         &
+           RefTime = mCurrTime,       &
+           alarmname = 'alarm_stop', rc=rc)
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
+
+      call ESMF_AlarmSet(stop_alarm, clock=mclock, rc=rc)
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
       !----------------
       ! Restart alarm
@@ -1280,30 +1305,6 @@ contains
         restart_n = -999
         user_restalarm = .false.
       end if
-
-      !----------------
-      ! Stop alarm
-      !----------------
-      call NUOPC_CompAttributeGet(gcomp, name="stop_option", value=stop_option, rc=rc)
-      if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-      call NUOPC_CompAttributeGet(gcomp, name="stop_n", value=cvalue, rc=rc)
-      if (ChkErr(rc,__LINE__,u_FILE_u)) return
-      read(cvalue,*) stop_n
-
-      call NUOPC_CompAttributeGet(gcomp, name="stop_ymd", value=cvalue, rc=rc)
-      if (ChkErr(rc,__LINE__,u_FILE_u)) return
-      read(cvalue,*) stop_ymd
-
-      call alarmInit(mclock, stop_alarm, stop_option, &
-           opt_n   = stop_n,           &
-           opt_ymd = stop_ymd,         &
-           RefTime = mCurrTime,       &
-           alarmname = 'alarm_stop', rc=rc)
-      if (ChkErr(rc,__LINE__,u_FILE_u)) return
-
-      call ESMF_AlarmSet(stop_alarm, clock=mclock, rc=rc)
-      if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
       !----------------
       ! History alarm
@@ -1428,7 +1429,6 @@ contains
     ! local variables
     integer           :: ierr
     integer           :: unitn  ! namelist unit number
-    integer           :: shrlogunit
     logical           :: isPresent, isSet
     real(r8)          :: dtmax_in  ! Maximum overall time step.
     real(r8)          :: dtmin_in  ! Minimum dynamic time step for source

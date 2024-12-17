@@ -26,6 +26,7 @@ module wav_shr_mod
   use ESMF            , only : ESMF_Time, ESMF_TimeGet, ESMF_TimeSet
   use ESMF            , only : ESMF_TimeInterval, ESMF_TimeIntervalSet, ESMF_TimeIntervalGet
   use ESMF            , only : ESMF_VM, ESMF_VMGet, ESMF_VMBroadcast, ESMF_VMGetCurrent
+  use ESMF            , only : ESMF_ClockGetAlarm, ESMF_AlarmGet, MOD
   use NUOPC           , only : NUOPC_CompAttributeGet
   use NUOPC_Model     , only : NUOPC_ModelGet
   use wav_kind_mod    , only : r8 => shr_kind_r8, i8 => shr_kind_i8, cl=>shr_kind_cl, cs=>shr_kind_cs
@@ -47,7 +48,6 @@ module wav_shr_mod
   private :: field_getfldptr   !< @private obtain a pointer to a field
   public  :: diagnose_mesh     !< @public write out info about mesh
   public  :: write_meshdecomp  !< @public write the mesh decomposition to a file
-
   interface state_getfldptr
     module procedure state_getfldptr_1d
     module procedure state_getfldptr_2d
@@ -75,7 +75,7 @@ module wav_shr_mod
                                                           !! be merged with a field provided from a file
   logical            , public :: multigrid = .false.      !< @public logical to control whether wave model is run
                                                           !! as multigrid
-
+  integer            , public :: dtime_drv                !! used for nstep(s) alarm option setting
   interface ymd2date
     module procedure ymd2date_int
     module procedure ymd2date_long
@@ -102,6 +102,7 @@ module wav_shr_mod
        optMonthly        = "monthly"   , &             !< alarm option monthly
        optYearly         = "yearly"    , &             !< alarm option yearly
        optDate           = "date"      , &             !< alarm option date
+       optEnd            = "end"       , &             !< alarm option end
        optIfdays0        = "ifdays0"                   !< alarm option for number of days 0
 
   ! Module data
@@ -893,6 +894,7 @@ contains
     type(ESMF_Time)         :: CurrTime         ! Current Time
     type(ESMF_Time)         :: NextAlarm        ! Next restart alarm time
     type(ESMF_TimeInterval) :: AlarmInterval    ! Alarm interval
+    type(ESMF_TimeInterval) :: TimeStepInterval ! Timestep interval
     integer                 :: sec
 
     character(len=*), parameter :: subname = ' (wav_shr_mod:set_alarmInit) '
@@ -939,6 +941,14 @@ contains
       call ESMF_TimeSet( NextAlarm, yy=9999, mm=12, dd=1, s=0, calendar=cal, rc=rc )
       if (chkerr(rc,__LINE__,u_FILE_u)) return
       update_nextalarm  = .false.
+
+    case (optEnd)
+       call ESMF_TimeIntervalSet(AlarmInterval, yy=9999, rc=rc)
+       if (chkerr(rc,__LINE__,u_FILE_u)) return
+       call ESMF_ClockGetAlarm(clock, alarmname="alarm_stop", alarm=alarm, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
+       call ESMF_AlarmGet(alarm, ringTime=NextAlarm, rc=rc)
+       if (ChkErr(rc,__LINE__,u_FILE_u)) return
 
     case (optDate)
       if (.not. present(opt_ymd)) then
@@ -990,9 +1000,17 @@ contains
              ESMF_LOGMSG_INFO, rc=rc)
         rc = ESMF_FAILURE
       end if
-      call ESMF_ClockGet(clock, TimeStep=AlarmInterval, rc=rc)
-      if (chkerr(rc,__LINE__,u_FILE_u)) return
+      call ESMF_ClockGet(clock, TimeStep=TimestepInterval, rc=rc)
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
+      call ESMF_TimeIntervalSet(AlarmInterval, s=dtime_drv, rc=rc )
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
       AlarmInterval = AlarmInterval * opt_n
+      ! timestepinterval*0 is 0 of kind ESMF_TimeStepInterval
+      if (mod(AlarmInterval, TimestepInterval) /= (timestepinterval*0)) then
+         call ESMF_LogWrite(subname//'illegal Alarm setting for '//trim(alarmname), ESMF_LOGMSG_ERROR)
+         rc = ESMF_FAILURE
+         return
+      endif
       update_nextalarm  = .true.
 
     case (optNStep)
@@ -1006,9 +1024,17 @@ contains
              ESMF_LOGMSG_INFO, rc=rc)
         rc = ESMF_FAILURE
       end if
-      call ESMF_ClockGet(clock, TimeStep=AlarmInterval, rc=rc)
-      if (chkerr(rc,__LINE__,u_FILE_u)) return
+      call ESMF_ClockGet(clock, TimeStep=TimestepInterval, rc=rc)
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
+      call ESMF_TimeIntervalSet(AlarmInterval, s=dtime_drv, rc=rc )
+      if (ChkErr(rc,__LINE__,u_FILE_u)) return
       AlarmInterval = AlarmInterval * opt_n
+      ! timestepinterval*0 is 0 of kind ESMF_TimeStepInterval
+      if (mod(AlarmInterval, TimestepInterval) /= (timestepinterval*0)) then
+         call ESMF_LogWrite(subname//'illegal Alarm setting for '//trim(alarmname), ESMF_LOGMSG_ERROR)
+         rc = ESMF_FAILURE
+         return
+      endif
       update_nextalarm  = .true.
 
     case (optNSeconds)
