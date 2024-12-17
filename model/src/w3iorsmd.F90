@@ -480,7 +480,11 @@ CONTAINS
           fname = trim(user_restfname)//trim(user_timestring)
           inquire( file=trim(fname), exist=exists)
           if (.not. exists) then
-            call extcde (60, msg="required initial/restart file " // trim(fname) // " does not exist")
+             fname = trim(initfile)
+             inquire( file=trim(fname), exist=exists)
+             if (.not. exists) then
+                call extcde (60, msg="required initial/restart file " // trim(fname) // " does not exist")
+             endif
           end if
         end if
       else
