@@ -43,6 +43,7 @@ MODULE W3SRCEMD
   !     ----------------------------------------------------------------
   !      OFFSET    R.P.  Private  Offset in time integration scheme.
   !                               0.5 in original WAM, now 1.0
+  !                               Reset back to 0.5 (C. Bitz)
   !     ----------------------------------------------------------------
   !
   !  3. Subroutines and functions :
@@ -66,7 +67,7 @@ MODULE W3SRCEMD
   !
   !/ ------------------------------------------------------------------- /
   !/
-  REAL, PARAMETER, PRIVATE:: OFFSET = 1.
+  REAL, PARAMETER, PRIVATE:: OFFSET = 0.5
   !/
 CONTAINS
   !/ ------------------------------------------------------------------- /
